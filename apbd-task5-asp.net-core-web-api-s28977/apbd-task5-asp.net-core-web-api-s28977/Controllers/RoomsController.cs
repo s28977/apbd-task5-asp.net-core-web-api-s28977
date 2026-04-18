@@ -95,6 +95,11 @@ public class RoomsController : ControllerBase
         {
             return NotFound($"Room with id {id} not found");
         }
+
+        if (DataStore.Reservations.Any(r => r.RoomId == room.Id && r.Date.ToDateTime(r.StartTime) > DateTime.Now))
+        {
+            return Conflict($"Room with id {id} has future reservations. Delete them first.");
+        }
         
         DataStore.Rooms.Remove(room);
         return NoContent();
