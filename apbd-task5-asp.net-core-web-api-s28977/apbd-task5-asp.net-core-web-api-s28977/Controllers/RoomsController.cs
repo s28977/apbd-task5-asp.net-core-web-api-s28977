@@ -64,19 +64,6 @@ public class RoomsController : ControllerBase
         return Ok(rooms);
     }
 
-    [HttpDelete("{id:int}")]
-    public IActionResult DeleteRoomById([FromRoute] int id)
-    {
-        var room = DataStore.Rooms.FirstOrDefault(r => r.Id == id);
-        if (room is null)
-        {
-            return NotFound($"Room with id {id} not found");
-        }
-        
-        DataStore.Rooms.Remove(room);
-        return NoContent();
-    }
-
     [HttpPut("{id:int}")]
     public ActionResult<Room> UpdateRoom([FromRoute] int id, [FromBody] Room updatedRoom)
     {
@@ -98,5 +85,18 @@ public class RoomsController : ControllerBase
         room.IsActive = updatedRoom.IsActive;
 
         return Ok(room);
+    }
+    
+    [HttpDelete("{id:int}")]
+    public IActionResult DeleteRoomById([FromRoute] int id)
+    {
+        var room = DataStore.Rooms.FirstOrDefault(r => r.Id == id);
+        if (room is null)
+        {
+            return NotFound($"Room with id {id} not found");
+        }
+        
+        DataStore.Rooms.Remove(room);
+        return NoContent();
     }
 }
