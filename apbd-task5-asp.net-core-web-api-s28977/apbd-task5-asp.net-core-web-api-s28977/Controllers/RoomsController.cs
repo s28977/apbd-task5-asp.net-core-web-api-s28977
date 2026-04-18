@@ -9,7 +9,10 @@ namespace apbd_task5_asp.net_core_web_api_s28977.Controllers;
 public class RoomsController : ControllerBase
 {
     [HttpGet]
-    public ActionResult<List<Room>> GetAll([FromQuery] int? minCapacity)
+    public ActionResult<List<Room>> GetAll(
+        [FromQuery] int? minCapacity, 
+        [FromQuery] bool? hasProjector,
+        [FromQuery] bool? activeOnly)
     {
         var rooms = DataStore.Rooms.AsEnumerable();
 
@@ -18,6 +21,16 @@ public class RoomsController : ControllerBase
             rooms = rooms.Where(r => r.Capacity >= minCapacity.Value);
         }
 
+        if (hasProjector.HasValue)
+        {
+            rooms = rooms.Where(r => r.HasProjector == hasProjector.Value);
+        }
+
+        if (activeOnly is true)
+        {
+            rooms = rooms.Where(r => r.IsActive);
+        }
+        
         return Ok(rooms.ToList());
     }
 
@@ -25,7 +38,7 @@ public class RoomsController : ControllerBase
     public ActionResult<Room> GetById([FromRoute] int id)
     {
         var room = DataStore.Rooms.FirstOrDefault(r => r.Id == id);
-        if (room == null)
+        if (room is null)
         {
             return NotFound($"Room with id {id} not found");
         }
@@ -49,5 +62,41 @@ public class RoomsController : ControllerBase
             .Where(r => r.BuildingCode.Equals(buildingCode, StringComparison.OrdinalIgnoreCase))
             .ToList();
         return Ok(rooms);
+    }
+
+    [HttpDelete("{id:int}")]
+    public IActionResult DeleteRoomById([FromRoute] int id)
+    {
+        var room = DataStore.Rooms.FirstOrDefault(r => r.Id == id);
+        if (room is null)
+        {
+            return NotFound($"Room with id {id} not found");
+        }
+        
+        DataStore.Rooms.Remove(room);
+        return NoContent();
+    }
+
+    [HttpPut("{id:int}")]
+    public ActionResult<Room> UpdateRoom([FromRoute] int id, [FromBody] Room updatedRoom)
+    {
+        if (updatedRoom.Id != 0 && updatedRoom.Id != id)
+        {
+            return BadRequest("URL id and body id must match.");
+        }
+        var room = DataStore.Rooms.FirstOrDefault(r => r.Id == id);
+        if (room is null)
+        {
+            return NotFound($"Room with id {id} not found");
+        }
+
+        room.Name =  updatedRoom.Name;
+        room.BuildingCode = updatedRoom.BuildingCode;
+        room.Floor = updatedRoom.Floor;
+        room.Capacity = updatedRoom.Capacity;
+        room.HasProjector = updatedRoom.HasProjector;
+        room.IsActive = updatedRoom.IsActive;
+
+        return Ok(room);
     }
 }
